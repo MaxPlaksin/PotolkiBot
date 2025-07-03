@@ -21,3 +21,21 @@ async def init_db():
             );
         ''')
         await db.commit()
+
+async def save_user(name: str, phone: str):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                phone TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        ''')
+        await db.execute('INSERT INTO users (name, phone) VALUES (?, ?)', (name, phone))
+        await db.commit()
+
+async def get_all_users():
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute('SELECT id, name, phone, created_at FROM users ORDER BY created_at DESC') as cursor:
+            return await cursor.fetchall()
