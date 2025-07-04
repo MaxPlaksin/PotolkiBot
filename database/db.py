@@ -16,6 +16,8 @@ async def init_db():
                 photo_file_id TEXT,
                 status TEXT DEFAULT 'new',
                 manager_comment TEXT,
+                desired_date TEXT,
+                measure_date TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP
             );
@@ -39,3 +41,21 @@ async def get_all_users():
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute('SELECT id, name, phone, created_at FROM users ORDER BY created_at DESC') as cursor:
             return await cursor.fetchall()
+
+async def save_order(name: str, phone: str, address: str, desired_date: str):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute('''
+            INSERT INTO orders (name, phone, address, desired_date)
+            VALUES (?, ?, ?, ?)
+        ''', (name, phone, address, desired_date))
+        await db.commit()
+
+async def get_all_orders():
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute('SELECT id, name, phone, address, desired_date, created_at FROM orders ORDER BY created_at DESC') as cursor:
+            return await cursor.fetchall()
+
+async def update_measure_date(order_id: int, measure_date: str):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute('UPDATE orders SET measure_date = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (measure_date, order_id))
+        await db.commit()
